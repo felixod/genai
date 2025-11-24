@@ -14,12 +14,12 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_genai;
+namespace qbank_gigaai;
 
 /**
  * Class navigation
  *
- * @package    qbank_genai
+ * @package    qbank_gigaai
  * @copyright  2024 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -30,7 +30,7 @@ class navigation extends \core_question\local\bank\navigation_node_base {
      * @return string
      */
     public function get_navigation_title(): string {
-        return get_string('title', 'qbank_genai');
+        return get_string('title', 'qbank_gigaai');
     }
 
     /**
@@ -49,6 +49,6 @@ class navigation extends \core_question\local\bank\navigation_node_base {
      */
     public function get_navigation_url(): \moodle_url {
         global $COURSE;
-        return new \moodle_url('/question/bank/genai/index.php', ['courseid' => $COURSE->id]);
+        return new \moodle_url('/question/bank/gigaai/index.php', ['courseid' => $COURSE->id]);
     }
 }

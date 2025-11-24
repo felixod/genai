@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_genai\form;
+namespace qbank_gigaai\form;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -25,7 +25,7 @@ use moodleform;
 /**
  * Class settings_form
  *
- * @package    qbank_genai
+ * @package    qbank_gigaai
  * @copyright  2024 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -36,16 +36,16 @@ class settings_form extends moodleform {
     public function definition() {
         $mform = $this->_form;
 
-        $mform->addElement('header', 'apisettings', get_string('apisettings', 'qbank_genai'));
+        $mform->addElement('header', 'apisettings', get_string('apisettings', 'qbank_gigaai'));
 
-        $mform->addElement('passwordunmask', 'apikey', get_string('apikey', 'qbank_genai'));
+        $mform->addElement('passwordunmask', 'apikey', get_string('apikey', 'qbank_gigaai'));
         $mform->setType('apikey', PARAM_ALPHANUMEXT);
-        $mform->addRule('apikey', get_string('noapikey', 'qbank_genai'), 'required');
-        $mform->addHelpButton('apikey', 'apikey', 'qbank_genai');
+        $mform->addRule('apikey', get_string('noapikey', 'qbank_gigaai'), 'required');
+        $mform->addHelpButton('apikey', 'apikey', 'qbank_gigaai');
 
-        $mform->addElement('text', 'model', get_string('model', 'qbank_genai'), ['size' => '35']);
+        $mform->addElement('text', 'model', get_string('model', 'qbank_gigaai'), ['size' => '35']);
         $mform->setType('model', PARAM_ALPHANUMEXT);
-        $mform->addHelpButton('model', 'model', 'qbank_genai');
+        $mform->addHelpButton('model', 'model', 'qbank_gigaai');
 
         $this->add_action_buttons();
     }

@@ -15,45 +15,45 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This page allows users to change settings related to the OpenAI API
+ * This page allows users to change settings related to the GigaChat API
  *
- * @package    qbank_genai
+ * @package    qbank_gigaai
  * @copyright  2024 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require('../../../config.php');
-require_once($CFG->dirroot . '/question/bank/genai/lib.php');
+require_once($CFG->dirroot . '/question/bank/gigaai/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 
-$url = new moodle_url('/question/bank/genai/genai_settings.php', ['courseid' => $courseid]);
+$url = new moodle_url('/question/bank/gigaai/genai_settings.php', ['courseid' => $courseid]);
 $PAGE->set_url($url);
 
 $course = get_course($courseid);
 
 require_login($course);
-core_question\local\bank\helper::require_plugin_enabled('qbank_genai');
+core_question\local\bank\helper::require_plugin_enabled('qbank_gigaai');
 
 $course = course_get_format($course)->get_course();
 
 $context = context_course::instance($course->id);
 $PAGE->set_context($context);
 
-require_all_capabilities(qbank_genai_required_capabilities(), $context);
+require_all_capabilities(qbank_gigaai_required_capabilities(), $context);
 
 $PAGE->set_pagelayout('standard');
-$PAGE->set_title(get_string('settings', 'qbank_genai'));
+$PAGE->set_title(get_string('settings', 'qbank_gigaai'));
 
 $PAGE->set_heading(format_string($course->fullname));
 
 echo $OUTPUT->header();
 
-echo $OUTPUT->heading(get_string('settings', 'qbank_genai'));
+echo $OUTPUT->heading(get_string('settings', 'qbank_gigaai'));
 
-$settings = $DB->get_record('qbank_genai_ai_settings', ["courseid" => $course->id, "userid" => $USER->id]);
+$settings = $DB->get_record('qbank_gigaai_ai_settings', ["courseid" => $course->id, "userid" => $USER->id]);
 
-$mform = new \qbank_genai\form\settings_form($url);
+$mform = new \qbank_gigaai\form\settings_form($url);
 
 if ($settings) {
     // Pass previous settings.
@@ -62,10 +62,10 @@ if ($settings) {
 
 if ($fromform = $mform->get_data()) {
     // Delete previous settings (for this user and course), if any.
-    $DB->delete_records('qbank_genai_ai_settings', ["courseid" => $course->id, "userid" => $USER->id]);
+    $DB->delete_records('qbank_gigaai_ai_settings', ["courseid" => $course->id, "userid" => $USER->id]);
 
     // Save new settings.
-    $DB->insert_record('qbank_genai_ai_settings', ["courseid" => $course->id, "userid" => $USER->id,
+    $DB->insert_record('qbank_gigaai_ai_settings', ["courseid" => $course->id, "userid" => $USER->id,
         "api_key" => $fromform->apikey, "model" => $fromform->model]);
 
     // Redirect to this page again.

@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_genai\event;
+namespace qbank_gigaai\event;
 
 use core\session\exception;
 
 /**
  * Event generation_launched
  *
- * @package    qbank_genai
+ * @package    qbank_gigaai
  * @copyright  2023 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

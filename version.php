@@ -17,14 +17,14 @@
 /**
  * Plugin version and other meta-data are defined here.
  *
- * @package     qbank_genai
+ * @package     qbank_gigaai
  * @copyright   2023 Christian Grévisse <christian.grevisse@uni.lu>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'qbank_genai';
+$plugin->component = 'qbank_gigaai';
 $plugin->release = '0.2.4';
 $plugin->version = 2025112100;
 $plugin->requires = 2022112800;

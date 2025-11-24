@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_genai\external;
+namespace qbank_gigaai\external;
 
 use core_external\external_api;
 use core_external\external_function_parameters;
@@ -23,12 +23,12 @@ use core_external\external_value;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/question/bank/genai/lib.php');
+require_once($CFG->dirroot . '/question/bank/gigaai/lib.php');
 
 /**
  * Class tag_questions
  *
- * @package    qbank_genai
+ * @package    qbank_gigaai
  * @copyright  2025 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -64,14 +64,14 @@ class tag_questions extends external_api {
         $numbersuccessfullytagged = 0;
 
         // Get API key from plugin settings.
-        $apikey = get_config('qbank_genai', 'apikey');
+        $apikey = get_config('qbank_gigaai', 'apikey');
 
         if (empty($apikey)) {
-            throw new \Exception(get_string('noapikey', 'qbank_genai'));
+            throw new \Exception(get_string('noapikey', 'qbank_gigaai'));
         }
 
         // Get model from plugin settings
-        $model = get_config('qbank_genai', 'model');
+        $model = get_config('qbank_gigaai', 'model');
         if (empty($model)) {
             $model = 'gigachat:latest'; // Default model
         }
@@ -109,7 +109,7 @@ class tag_questions extends external_api {
                 ],
             ];
 
-            $response = qbank_genai_call_gigachat_api($apikey, $model, $messages, [
+            $response = qbank_gigaai_call_gigachat_api($apikey, $model, $messages, [
                 'temperature' => 0.0,
             ]);
 
@@ -137,7 +137,7 @@ class tag_questions extends external_api {
                     $tags = array_map('trim', $tags);
                 }
             } catch (\Exception $e) {
-                throw new \Exception(get_string('autotagparsingerror', 'qbank_genai') . ' Error: ' . $e->getMessage());
+                throw new \Exception(get_string('autotagparsingerror', 'qbank_gigaai') . ' Error: ' . $e->getMessage());
             }
 
             \core_tag_tag::set_item_tags('core_question', 'question', $qid, \context::instance_by_id($question->contextid), $tags);
@@ -145,6 +145,6 @@ class tag_questions extends external_api {
             $numbersuccessfullytagged++;
         }
 
-        return get_string('autotagsuccess', 'qbank_genai', $numbersuccessfullytagged);
+        return get_string('autotagsuccess', 'qbank_gigaai', $numbersuccessfullytagged);
     }
 }

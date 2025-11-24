@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_genai;
+namespace qbank_gigaai;
 
 use core_question\local\bank\question_action_base;
 
 /**
  * Class autotag_action
  *
- * @package    qbank_genai
+ * @package    qbank_gigaai
  * @copyright  2025 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -44,8 +44,8 @@ class autotag_action extends question_action_base {
             'returnurl' => $this->qbank->returnurl,
         ];
 
-        $url = new \moodle_url('/question/bank/genai/autotag.php', $params);
-        return [$url, 'i/grading', get_string('autotag', 'qbank_genai')];
+        $url = new \moodle_url('/question/bank/gigaai/autotag.php', $params);
+        return [$url, 'i/grading', get_string('autotag', 'qbank_gigaai')];
     }
 
     /**

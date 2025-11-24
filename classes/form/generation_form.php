@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_genai\form;
+namespace qbank_gigaai\form;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -25,7 +25,7 @@ use moodleform;
 /**
  * Class generation_form
  *
- * @package    qbank_genai
+ * @package    qbank_gigaai
  * @copyright  2023 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -48,7 +48,7 @@ class generation_form extends moodleform {
             $mform->addElement('advcheckbox', "resource[{$resource->id}]", $resource->name, null, $attributes);
         }
 
-        $this->add_action_buttons(false, get_string('title', 'qbank_genai'));
+        $this->add_action_buttons(false, get_string('title', 'qbank_gigaai'));
     }
 
     /**
@@ -71,7 +71,7 @@ class generation_form extends moodleform {
         }
 
         if ($noneselected) {
-            $errors["resource"] = get_string('errormsg_noneselected', 'qbank_genai');
+            $errors["resource"] = get_string('errormsg_noneselected', 'qbank_gigaai');
         }
 
         return $errors;

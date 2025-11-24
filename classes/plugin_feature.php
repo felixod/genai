@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_genai;
+namespace qbank_gigaai;
 
 use core_question\local\bank\navigation_node_base;
 use core_question\local\bank\view;
@@ -22,7 +22,7 @@ use core_question\local\bank\view;
 /**
  * Plugin entrypoint.
  *
- * @package    qbank_genai
+ * @package    qbank_gigaai
  * @copyright  2024 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
