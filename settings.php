@@ -30,17 +30,17 @@ if ($hassiteconfig) {
 
     if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_configpasswordunmask(
-            'qbank_genai/openaiapikey',
-            get_string('openaiapikey', 'qbank_genai'),
-            get_string('openaiapikey_help', 'qbank_genai'),
+            'qbank_genai/apikey',
+            get_string('apikey', 'qbank_genai'),
+            get_string('apikey_help', 'qbank_genai'),
             '',
         ));
 
         $settings->add(new admin_setting_configtext(
-            'qbank_genai/assistantid',
-            new lang_string('assistantid', 'qbank_genai'),
-            new lang_string('assistantid_help', 'qbank_genai'),
-            '',
+            'qbank_genai/model',
+            new lang_string('model', 'qbank_genai'),
+            new lang_string('model_help', 'qbank_genai'),
+            'gigachat:latest',
         ));
     }
 }

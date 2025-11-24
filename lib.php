@@ -104,82 +104,51 @@ function qbank_genai_get_fileinfo_for_resource(int $resourceid) {
 }
 
 /**
- * Retrieves the OpenAI API key, if any. It first checks the course-specific settings, then the site-wide settings.
+ * Retrieves the API key, if any. It first checks the course-specific settings, then the site-wide settings.
  *
  * @param int $courseid ID of the course.
  * @return string|null The API key or null.
  */
-function qbank_genai_get_openai_apikey(int $courseid) {
+function qbank_genai_get_apikey(int $courseid) {
     global $DB, $USER;
 
-    $coursesettings = $DB->get_record('qbank_genai_openai_settings', ["courseid" => $courseid, "userid" => $USER->id]);
+    $coursesettings = $DB->get_record('qbank_genai_ai_settings', ["courseid" => $courseid, "userid" => $USER->id]);
 
-    if ($coursesettings && !empty($coursesettings->openaiapikey)) {
-        return $coursesettings->openaiapikey;
+    if ($coursesettings && !empty($coursesettings->api_key)) {
+        return $coursesettings->api_key;
     }
 
-    $openaiapikey = get_config('qbank_genai', 'openaiapikey');
+    $apikey = get_config('qbank_genai', 'apikey');
 
-    if (!empty($openaiapikey)) {
-        return $openaiapikey;
+    if (!empty($apikey)) {
+        return $apikey;
     }
 
     return null;
 }
 
 /**
- * Retrieves and - if necessary - creates an OpenAI Assistant for the same level
- * (course-specific/site-wide) as the OpenAI API key.
+ * Retrieves the model to be used, if any. It first checks the course-specific settings, then the site-wide settings.
  *
- * @param int $courseid ID of the course in which questions will be created.
- * @param int $userid ID of the user executing the task.
- * @return string ID of the assistant.
+ * @param int $courseid ID of the course.
+ * @return string The model name or default.
  */
-function qbank_genai_get_or_create_openai_assistant(int $courseid, int $userid) {
-    global $DB;
+function qbank_genai_get_model(int $courseid) {
+    global $DB, $USER;
 
-    $assistantid = null;
+    $coursesettings = $DB->get_record('qbank_genai_ai_settings', ["courseid" => $courseid, "userid" => $USER->id]);
 
-    $coursesettings = $DB->get_record('qbank_genai_openai_settings', ["courseid" => $courseid, "userid" => $userid]);
-
-    if ($coursesettings && !empty($coursesettings->openaiapikey)) {
-        // Course-specific.
-        $assistantid = $coursesettings->assistantid;
-
-        if (empty($assistantid)) {
-            $assistantid = _qbank_genai_create_openai_assistant($coursesettings->openaiapikey);
-            $DB->update_record('qbank_genai_openai_settings', ["id" => $coursesettings->id, "assistantid" => $assistantid]);
-        }
-    } else {
-        // Site-wide.
-        $assistantid = get_config('qbank_genai', 'assistantid');
-
-        if (empty($assistantid)) {
-            $assistantid = _qbank_genai_create_openai_assistant(get_config('qbank_genai', 'openaiapikey'));
-            set_config("assistantid", $assistantid, "qbank_genai");
-        }
+    if ($coursesettings && !empty($coursesettings->model)) {
+        return $coursesettings->model;
     }
 
-    return $assistantid;
-}
+    $model = get_config('qbank_genai', 'model');
 
-/**
- * Creates an OpenAI Assistant.
- *
- * @param string $apikey The OpenAI API key.
- * @return string ID of the created assistant.
- */
-function _qbank_genai_create_openai_assistant(string $apikey) {
-    $client = OpenAI::client($apikey);
+    if (!empty($model)) {
+        return $model;
+    }
 
-    $response = $client->assistants()->create([
-        'name' => 'MCQ Generator',
-        'instructions' => 'You create multiple-choice questions about the files that you will receive.',
-        'model' => 'gpt-4o',
-        'tools' => [['type' => 'file_search']],
-    ]);
-
-    return $response->id;
+    return 'gigachat:latest'; // Default model
 }
 
 /**
@@ -372,4 +341,67 @@ function qbank_genai_add_description(string $name, string $text, stdClass $categ
 
     // Commit the transaction.
     $transaction->allow_commit();
+}
+
+/**
+ * Makes a call to the GigaChat API.
+ *
+ * @param string $api_key The GigaChat API key.
+ * @param string $model The model to use.
+ * @param array $messages Array of messages for the conversation.
+ * @param array $options Additional options for the request.
+ * @return object The API response.
+ */
+function qbank_genai_call_gigachat_api(string $api_key, string $model, array $messages, array $options = []) {
+    // GigaChat API endpoint
+    $url = 'https://gigachat.devices.sberbank.ru/api/v1/chat/completions';
+    
+    // Prepare the request data
+    $data = [
+        'model' => $model,
+        'messages' => $messages,
+        'temperature' => $options['temperature'] ?? 0.7,
+        'max_tokens' => $options['max_tokens'] ?? 1000,
+    ];
+    
+    // Add any additional options
+    if (isset($options['stream'])) {
+        $data['stream'] = $options['stream'];
+    }
+    
+    // Initialize cURL
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($data),
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Authorization: Bearer ' . $api_key,
+        ],
+        CURLOPT_SSL_VERIFYPEER => false, // Only for testing - remove in production
+        CURLOPT_TIMEOUT => 60,
+    ]);
+    
+    $response = curl_exec($ch);
+    $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
+    
+    if ($error) {
+        throw new \moodle_exception('GigaChat API request failed: ' . $error);
+    }
+    
+    if ($httpcode !== 200) {
+        throw new \moodle_exception('GigaChat API request failed with HTTP code: ' . $httpcode . ', Response: ' . $response);
+    }
+    
+    $decoded_response = json_decode($response, true);
+    
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        throw new \moodle_exception('Failed to decode GigaChat API response: ' . json_last_error_msg());
+    }
+    
+    return (object) $decoded_response;
 }
