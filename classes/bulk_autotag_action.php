@@ -14,14 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_genai;
+namespace qbank_gigaai;
 
 use core_question\local\bank\view;
 
 /**
  * Class bulk_autotag_action
  *
- * @package    qbank_genai
+ * @package    qbank_gigaai
  * @copyright  2025 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -44,7 +44,7 @@ class bulk_autotag_action extends \core_question\local\bank\bulk_action_base {
      * @return string The title.
      */
     public function get_bulk_action_title(): string {
-        return get_string('autotag', 'qbank_genai');
+        return get_string('autotag', 'qbank_gigaai');
     }
 
     /**
@@ -63,7 +63,7 @@ class bulk_autotag_action extends \core_question\local\bank\bulk_action_base {
      */
     public function get_bulk_action_url(): \moodle_url {
         global $COURSE;
-        return new \moodle_url('/question/bank/genai/autotag.php', ['courseid' => $COURSE->id]);
+        return new \moodle_url('/question/bank/gigaai/autotag.php', ['courseid' => $COURSE->id]);
     }
 
     /**

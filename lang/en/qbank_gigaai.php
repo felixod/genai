@@ -17,7 +17,7 @@
 /**
  * Plugin strings are defined here.
  *
- * @package     qbank_genai
+ * @package     qbank_gigaai
  * @category    string
  * @copyright   2023 Christian Grévisse <christian.grevisse@uni.lu>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -45,12 +45,12 @@ $string['apikey'] = 'API key';
 $string['apikey_help'] = 'Your API key for the AI service.';
 $string['apisettings'] = 'AI API Settings';
 
-$string['pluginname'] = 'Generative AI Question Bank';
+$string['pluginname'] = 'GigaAI Question Bank';
 
-$string['privacy:metadata:qbank_genai_ai_settings'] = 'The user\'s ID';
-$string['privacy:metadata:qbank_genai_ai_settings:userid'] = 'Table that stores data related to the AI API';
+$string['privacy:metadata:qbank_gigaai_ai_settings'] = 'The user\'s ID';
+$string['privacy:metadata:qbank_gigaai_ai_settings:userid'] = 'Table that stores data related to the AI API';
 
 $string['return'] = 'Return to question bank';
 
-$string['settings'] = 'Generative AI Question Bank Settings';
+$string['settings'] = 'GigaAI Question Bank Settings';
 $string['title'] = 'Generate questions';

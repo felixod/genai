@@ -17,7 +17,7 @@
 /**
  * Callback implementations for Generative AI Question Bank
  *
- * @package    qbank_genai
+ * @package    qbank_gigaai
  * @copyright  2023 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -31,7 +31,7 @@ require_once($CFG->libdir . '/questionlib.php'); // Needed for get_next_version(
  *
  * @return array The necessary capabilities
  */
-function qbank_genai_required_capabilities() {
+function qbank_gigaai_required_capabilities() {
     return ['moodle/question:add', 'moodle/course:viewhiddenactivities'];
 }
 
@@ -42,24 +42,24 @@ function qbank_genai_required_capabilities() {
  * @param stdClass $course The course
  * @param context $context Course context
  */
-function qbank_genai_extend_navigation_course(navigation_node $navigation, stdClass $course, context $context) {
-    if (!\core\plugininfo\qbank::is_plugin_enabled('qbank_genai')) {
+function qbank_gigaai_extend_navigation_course(navigation_node $navigation, stdClass $course, context $context) {
+    if (!\core\plugininfo\qbank::is_plugin_enabled('qbank_gigaai')) {
         return;
     }
 
-    if (!isloggedin() || isguestuser() || !has_all_capabilities(qbank_genai_required_capabilities(), $context)) {
+    if (!isloggedin() || isguestuser() || !has_all_capabilities(qbank_gigaai_required_capabilities(), $context)) {
         return;
     }
 
     $navigation->add(
-        get_string('title', 'qbank_genai'),
-        new moodle_url('/question/bank/genai/index.php', ['courseid' => $course->id]),
+        get_string('title', 'qbank_gigaai'),
+        new moodle_url('/question/bank/gigaai/index.php', ['courseid' => $course->id]),
         navigation_node::COURSE_INDEX_PAGE,
     );
 
     $navigation->add(
-        get_string('settings', 'qbank_genai'),
-        new moodle_url('/question/bank/genai/genai_settings.php', ['courseid' => $course->id]),
+        get_string('settings', 'qbank_gigaai'),
+        new moodle_url('/question/bank/gigaai/genai_settings.php', ['courseid' => $course->id]),
         navigation_node::COURSE_INDEX_PAGE,
     );
 }
@@ -70,7 +70,7 @@ function qbank_genai_extend_navigation_course(navigation_node $navigation, stdCl
  * @param stdClass $course The course
  * @return cm_info[] The resources
  */
-function qbank_genai_get_course_resources(stdClass $course) {
+function qbank_gigaai_get_course_resources(stdClass $course) {
     $info = get_fast_modinfo($course);
     return $info->instances['resource'] ?? [];
 }
@@ -81,7 +81,7 @@ function qbank_genai_get_course_resources(stdClass $course) {
  * @param int $resourceid The ID of the resource
  * @return stdClass The file info
  */
-function qbank_genai_get_fileinfo_for_resource(int $resourceid) {
+function qbank_gigaai_get_fileinfo_for_resource(int $resourceid) {
     $fs = get_file_storage();
     $cmid = context_module::instance($resourceid)->id;
     $files = $fs->get_area_files($cmid, 'mod_resource', 'content', 0, 'filename', false);
@@ -109,16 +109,16 @@ function qbank_genai_get_fileinfo_for_resource(int $resourceid) {
  * @param int $courseid ID of the course.
  * @return string|null The API key or null.
  */
-function qbank_genai_get_apikey(int $courseid) {
+function qbank_gigaai_get_apikey(int $courseid) {
     global $DB, $USER;
 
-    $coursesettings = $DB->get_record('qbank_genai_ai_settings', ["courseid" => $courseid, "userid" => $USER->id]);
+    $coursesettings = $DB->get_record('qbank_gigaai_ai_settings', ["courseid" => $courseid, "userid" => $USER->id]);
 
     if ($coursesettings && !empty($coursesettings->api_key)) {
         return $coursesettings->api_key;
     }
 
-    $apikey = get_config('qbank_genai', 'apikey');
+    $apikey = get_config('qbank_gigaai', 'apikey');
 
     if (!empty($apikey)) {
         return $apikey;
@@ -133,16 +133,16 @@ function qbank_genai_get_apikey(int $courseid) {
  * @param int $courseid ID of the course.
  * @return string The model name or default.
  */
-function qbank_genai_get_model(int $courseid) {
+function qbank_gigaai_get_model(int $courseid) {
     global $DB, $USER;
 
-    $coursesettings = $DB->get_record('qbank_genai_ai_settings', ["courseid" => $courseid, "userid" => $USER->id]);
+    $coursesettings = $DB->get_record('qbank_gigaai_ai_settings', ["courseid" => $courseid, "userid" => $USER->id]);
 
     if ($coursesettings && !empty($coursesettings->model)) {
         return $coursesettings->model;
     }
 
-    $model = get_config('qbank_genai', 'model');
+    $model = get_config('qbank_gigaai', 'model');
 
     if (!empty($model)) {
         return $model;
@@ -158,7 +158,7 @@ function qbank_genai_get_model(int $courseid) {
  * @param string $resourcedescription The description about the resources for which questions are generated
  * @return stdClass Record of the new question category
  */
-function qbank_genai_create_question_category(int $contextid, string $resourcedescription) {
+function qbank_gigaai_create_question_category(int $contextid, string $resourcedescription) {
     global $DB;
 
     $record = [
@@ -182,7 +182,7 @@ function qbank_genai_create_question_category(int $contextid, string $resourcede
  * @param stdClass[] $resources Array of resources
  * @return string The description string
  */
-function qbank_genai_get_resource_names_string($resources) {
+function qbank_gigaai_get_resource_names_string($resources) {
     return implode(", ", array_map(fn($r): string => $r->name, $resources));
 }
 
@@ -196,7 +196,7 @@ function qbank_genai_get_resource_names_string($resources) {
  * @param stdClass $question The MCQ data
  * @param stdClass $category Information about the category and context
  */
-function qbank_genai_create_question(string $name, stdClass $question, stdClass $category) {
+function qbank_gigaai_create_question(string $name, stdClass $question, stdClass $category) {
     global $USER, $DB;
 
     $transaction = $DB->start_delegated_transaction();
@@ -287,7 +287,7 @@ function qbank_genai_create_question(string $name, stdClass $question, stdClass 
  * @param string $text The question text
  * @param stdClass $category Information about the category and context
  */
-function qbank_genai_add_description(string $name, string $text, stdClass $category) {
+function qbank_gigaai_add_description(string $name, string $text, stdClass $category) {
     global $USER, $DB;
 
     $transaction = $DB->start_delegated_transaction();
@@ -352,7 +352,7 @@ function qbank_genai_add_description(string $name, string $text, stdClass $categ
  * @param array $options Additional options for the request.
  * @return object The API response.
  */
-function qbank_genai_call_gigachat_api(string $api_key, string $model, array $messages, array $options = []) {
+function qbank_gigaai_call_gigachat_api(string $api_key, string $model, array $messages, array $options = []) {
     // GigaChat API endpoint
     $url = 'https://gigachat.devices.sberbank.ru/api/v1/chat/completions';
     

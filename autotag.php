@@ -17,21 +17,21 @@
 /**
  * AutoTag feature.
  *
- * @package    qbank_genai
+ * @package    qbank_gigaai
  * @copyright  2025 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require('../../../config.php');
-require_once($CFG->dirroot . '/question/bank/genai/lib.php');
+require_once($CFG->dirroot . '/question/bank/gigaai/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 
-$url = new moodle_url('/question/bank/genai/autotag.php', ['courseid' => $courseid]);
+$url = new moodle_url('/question/bank/gigaai/autotag.php', ['courseid' => $courseid]);
 $PAGE->set_url($url);
 
 require_login($courseid);
-core_question\local\bank\helper::require_plugin_enabled('qbank_genai');
+core_question\local\bank\helper::require_plugin_enabled('qbank_gigaai');
 
 $context = context_course::instance($courseid);
 $PAGE->set_context($context);
@@ -62,7 +62,7 @@ if (!$questionid) {
 
 // Check if any question was selected.
 if (empty($questionlist)) {
-    throw new moodle_exception('noquestionselected', 'qbank_genai');
+    throw new moodle_exception('noquestionselected', 'qbank_gigaai');
 }
 
 // Check that the user has the capability to tag questions.
@@ -70,19 +70,19 @@ foreach ($questionlist as $questionid) {
     question_require_capability_on($questionid, 'tag');
 }
 
-// Check for OpenAI API key.
-$openaiapikey = qbank_genai_get_openai_apikey($courseid);
+// Check for GigaChat API key.
+$gigachatapikey = qbank_gigaai_get_apikey($courseid);
 
-if (empty($openaiapikey)) {
-    throw new moodle_exception('noopenaiapikey', 'qbank_genai');
+if (empty($gigachatapikey)) {
+    throw new moodle_exception('noapikey', 'qbank_gigaai');
 }
 
 $PAGE->set_pagelayout('standard');
-$PAGE->set_title(get_string('autotag', 'qbank_genai'));
-$PAGE->set_heading(get_string('autotag', 'qbank_genai'));
+$PAGE->set_title(get_string('autotag', 'qbank_gigaai'));
+$PAGE->set_heading(get_string('autotag', 'qbank_gigaai'));
 echo $OUTPUT->header();
 
-echo html_writer::tag('p', get_string('autotagintro', 'qbank_genai'));
+echo html_writer::tag('p', get_string('autotagintro', 'qbank_gigaai'));
 echo html_writer::start_tag('ul');
 
 foreach ($questionlist as $questionid) {
@@ -92,14 +92,14 @@ foreach ($questionlist as $questionid) {
 
 echo html_writer::end_tag('ul');
 
-echo html_writer::tag('button', get_string('autotag', 'qbank_genai'), ["class" => "btn btn-primary", "id" => "id_autotagbutton"]);
+echo html_writer::tag('button', get_string('autotag', 'qbank_gigaai'), ["class" => "btn btn-primary", "id" => "id_autotagbutton"]);
 
 echo html_writer::tag('div', '', ["class" => "mt-3 alert", "id" => "id_autotagresult"]);
 
-echo html_writer::tag('a', get_string('return', 'qbank_genai'), ["href" => $returnurl, "class" => "d-block mt-4"]);
+echo html_writer::tag('a', get_string('return', 'qbank_gigaai'), ["href" => $returnurl, "class" => "d-block mt-4"]);
 
 // Add Javascript module.
 global $PAGE;
-$PAGE->requires->js_call_amd('qbank_genai/autotag', 'init', [$questionlist]);
+$PAGE->requires->js_call_amd('qbank_gigaai/autotag', 'init', [$questionlist]);
 
 echo $OUTPUT->footer();
