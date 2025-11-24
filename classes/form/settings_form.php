@@ -36,16 +36,16 @@ class settings_form extends moodleform {
     public function definition() {
         $mform = $this->_form;
 
-        $mform->addElement('header', 'openaiapisettings', get_string('openaiapisettings', 'qbank_genai'));
+        $mform->addElement('header', 'apisettings', get_string('apisettings', 'qbank_genai'));
 
-        $mform->addElement('passwordunmask', 'openaiapikey', get_string('openaiapikey', 'qbank_genai'));
-        $mform->setType('openaiapikey', PARAM_ALPHANUMEXT);
-        $mform->addRule('openaiapikey', get_string('noopenaiapikey', 'qbank_genai'), 'required');
-        $mform->addHelpButton('openaiapikey', 'openaiapikey', 'qbank_genai');
+        $mform->addElement('passwordunmask', 'apikey', get_string('apikey', 'qbank_genai'));
+        $mform->setType('apikey', PARAM_ALPHANUMEXT);
+        $mform->addRule('apikey', get_string('noapikey', 'qbank_genai'), 'required');
+        $mform->addHelpButton('apikey', 'apikey', 'qbank_genai');
 
-        $mform->addElement('text', 'assistantid', get_string('assistantid', 'qbank_genai'), ['size' => '35']);
-        $mform->setType('assistantid', PARAM_ALPHANUMEXT);
-        $mform->addHelpButton('assistantid', 'assistantid', 'qbank_genai');
+        $mform->addElement('text', 'model', get_string('model', 'qbank_genai'), ['size' => '35']);
+        $mform->setType('model', PARAM_ALPHANUMEXT);
+        $mform->addHelpButton('model', 'model', 'qbank_genai');
 
         $this->add_action_buttons();
     }

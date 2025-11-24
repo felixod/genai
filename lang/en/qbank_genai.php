@@ -25,8 +25,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$string['assistantid'] = 'Assistant ID';
-$string['assistantid_help'] = 'ID concerning the <a href="https://platform.openai.com/docs/assistants/overview" target="_blank">Assistants API</a> of OpenAI. This will be set by the plugin.';
+$string['model'] = 'Model';
+$string['model_help'] = 'Name of the model to use (e.g., GigaChat:Pro, GigaChat:Max, etc.).';
 
 $string['autotag'] = 'AutoTag';
 $string['autotagintro'] = 'The following questions will be auto-tagged:';
@@ -35,20 +35,20 @@ $string['autotagsuccess'] = '{$a} questions have been tagged successfully.';
 
 $string['errormsg_noneselected'] = 'Please select at least one resource.';
 
-$string['noopenaiapikey'] = 'You need to set an OpenAI API key.';
+$string['noapikey'] = 'You need to set an API key.';
 $string['noquestionselected'] = 'No question selected.';
 $string['noresources'] = 'There are no resources in your course.';
 
 $string['ongoingtasks'] = 'The following generation tasks are ongoing:';
 
-$string['openaiapikey'] = 'OpenAI API key';
-$string['openaiapikey_help'] = 'To be created at <a href="https://platform.openai.com/api-keys" target="_blank">https://platform.openai.com/api-keys</a>.';
-$string['openaiapisettings'] = 'OpenAI API Settings';
+$string['apikey'] = 'API key';
+$string['apikey_help'] = 'Your API key for the AI service.';
+$string['apisettings'] = 'AI API Settings';
 
 $string['pluginname'] = 'Generative AI Question Bank';
 
-$string['privacy:metadata:qbank_genai_openai_settings'] = 'The user\'s ID';
-$string['privacy:metadata:qbank_genai_openai_settings:userid'] = 'Table that stores data related to the OpenAI API';
+$string['privacy:metadata:qbank_genai_ai_settings'] = 'The user\'s ID';
+$string['privacy:metadata:qbank_genai_ai_settings:userid'] = 'Table that stores data related to the AI API';
 
 $string['return'] = 'Return to question bank';
 

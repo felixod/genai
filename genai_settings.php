@@ -51,7 +51,7 @@ echo $OUTPUT->header();
 
 echo $OUTPUT->heading(get_string('settings', 'qbank_genai'));
 
-$settings = $DB->get_record('qbank_genai_openai_settings', ["courseid" => $course->id, "userid" => $USER->id]);
+$settings = $DB->get_record('qbank_genai_ai_settings', ["courseid" => $course->id, "userid" => $USER->id]);
 
 $mform = new \qbank_genai\form\settings_form($url);
 
@@ -62,11 +62,11 @@ if ($settings) {
 
 if ($fromform = $mform->get_data()) {
     // Delete previous settings (for this user and course), if any.
-    $DB->delete_records('qbank_genai_openai_settings', ["courseid" => $course->id, "userid" => $USER->id]);
+    $DB->delete_records('qbank_genai_ai_settings', ["courseid" => $course->id, "userid" => $USER->id]);
 
     // Save new settings.
-    $DB->insert_record('qbank_genai_openai_settings', ["courseid" => $course->id, "userid" => $USER->id,
-        "openaiapikey" => $fromform->openaiapikey, "assistantid" => $fromform->assistantid]);
+    $DB->insert_record('qbank_genai_ai_settings', ["courseid" => $course->id, "userid" => $USER->id,
+        "api_key" => $fromform->apikey, "model" => $fromform->model]);
 
     // Redirect to this page again.
     redirect($PAGE->url);

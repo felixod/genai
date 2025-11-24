@@ -1,1 +1,53 @@
-TODO.md
+```
+# Dependencies
+vendor/
+node_modules/
+composer.lock
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.local
+.env.*
+
+# Editor/IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build/compiled
+*.o
+*.obj
+*.so
+*.dll
+*.exe
+*.a
+*.class
+
+# Cache
+__pycache__/
+*.pyc
+*.pyo
+.Python
+coverage/
+htmlcov/
+.coverage
+
+# Distribution
+dist/
+build/
+target/
+*.tar.gz
+*.zip
+
+# Testing
+.phpunit.result.cache
+```

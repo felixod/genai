@@ -24,7 +24,6 @@ use core_external\external_value;
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot . '/question/bank/genai/lib.php');
-require_once($CFG->dirroot . '/question/bank/genai/vendor/autoload.php');
 
 /**
  * Class tag_questions
@@ -64,15 +63,18 @@ class tag_questions extends external_api {
 
         $numbersuccessfullytagged = 0;
 
-        // Get OpenAI API key from plugin settings.
-        $openaiapikey = get_config('qbank_genai', 'openaiapikey');
+        // Get API key from plugin settings.
+        $apikey = get_config('qbank_genai', 'apikey');
 
-        if (empty($openaiapikey)) {
-            throw new \Exception(get_string('noopenaiapikey', 'qbank_genai'));
+        if (empty($apikey)) {
+            throw new \Exception(get_string('noapikey', 'qbank_genai'));
         }
 
-        // Initialize OpenAI client.
-        $client = \OpenAI::client($openaiapikey);
+        // Get model from plugin settings
+        $model = get_config('qbank_genai', 'model');
+        if (empty($model)) {
+            $model = 'gigachat:latest'; // Default model
+        }
 
         foreach ($questionlist as $qid) {
             $question = \question_bank::load_question($qid);
@@ -94,50 +96,48 @@ class tag_questions extends external_api {
                 $questiontext .= '\n- ' . strip_tags($a->answer);
             }
 
-            // Call OpenAI to get tags.
-            $response = $client->responses()->create([
-                'model' => 'gpt-4o',
-                'input' => [
-                    [
-                        'role' => 'system',
-                        'content' => 'You are a tagging assistant. Your task is to extract a list of the most
-                                        important tags for the given content. All tags shall be given in English.',
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => $questiontext,
-                    ],
+            // Call GigaChat to get tags.
+            $messages = [
+                [
+                    'role' => 'system',
+                    'content' => 'You are a tagging assistant. Your task is to extract a list of the most
+                                    important tags for the given content. All tags shall be given in English.',
                 ],
+                [
+                    'role' => 'user',
+                    'content' => $questiontext,
+                ],
+            ];
+
+            $response = qbank_genai_call_gigachat_api($apikey, $model, $messages, [
                 'temperature' => 0.0,
-                'text' => [
-                    "format" => [
-                        'type' => 'json_schema',
-                        'name' => 'tag_response',
-                        'strict' => true,
-                        'schema' => [
-                            'type' => 'object',
-                            'properties' => [
-                                'tags' => [
-                                    'type' => 'array',
-                                    'items' => [
-                                        'type' => 'string',
-                                    ],
-                                ],
-                            ],
-                            'required' => ['tags'],
-                            'additionalProperties' => false,
-                        ],
-                    ],
-                ],
             ]);
 
             $tags = [];
 
             // Parse the response to get the tags.
             try {
-                $tags = json_decode($response->output[0]->content[0]->text)->tags;
+                $content = $response->choices[0]->message->content;
+                // Extract JSON from the response if needed
+                $json_start = strpos($content, '{');
+                $json_end = strrpos($content, '}');
+                if ($json_start !== false && $json_end !== false) {
+                    $json_str = substr($content, $json_start, $json_end - $json_start + 1);
+                    $parsed = json_decode($json_str, true);
+                    if (isset($parsed['tags']) && is_array($parsed['tags'])) {
+                        $tags = $parsed['tags'];
+                    } else {
+                        // If tags are not in a JSON object, try to extract them from the content
+                        $tags = explode(',', $content);
+                        $tags = array_map('trim', $tags);
+                    }
+                } else {
+                    // If no JSON found, try to parse as a simple list
+                    $tags = explode(',', $content);
+                    $tags = array_map('trim', $tags);
+                }
             } catch (\Exception $e) {
-                throw new \Exception(get_string('autotagparsingerror', 'qbank_genai'));
+                throw new \Exception(get_string('autotagparsingerror', 'qbank_genai') . ' Error: ' . $e->getMessage());
             }
 
             \core_tag_tag::set_item_tags('core_question', 'question', $qid, \context::instance_by_id($question->contextid), $tags);

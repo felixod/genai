@@ -72,5 +72,29 @@ function xmldb_qbank_genai_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025082601, 'qbank', 'genai');
     }
 
+    if ($oldversion < 2025112400) {
+        // Rename table qbank_genai_openai_settings to qbank_genai_ai_settings
+        $table = new xmldb_table('qbank_genai_openai_settings');
+        if ($dbman->table_exists($table)) {
+            // Rename the table and its fields
+            $dbman->rename_table($table, 'qbank_genai_ai_settings');
+            
+            // Rename the fields
+            $table = new xmldb_table('qbank_genai_ai_settings');
+            $field = new xmldb_field('openaiapikey', XMLDB_TYPE_CHAR, '200', null, XMLDB_NOTNULL, null, null, 'userid');
+            if ($dbman->field_exists($table, $field)) {
+                $dbman->rename_field($table, $field, 'api_key');
+            }
+            
+            $field = new xmldb_field('assistantid', XMLDB_TYPE_CHAR, '100', null, null, null, null, 'api_key');
+            if ($dbman->field_exists($table, $field)) {
+                $dbman->rename_field($table, $field, 'model');
+            }
+        }
+
+        // Genai savepoint reached.
+        upgrade_plugin_savepoint(true, 2025112400, 'qbank', 'genai');
+    }
+
     return true;
 }
