@@ -1,6 +1,6 @@
+```php
 # Compiled and build artifacts
 *.pyc
-__pycache__/
 *.o
 *.obj
 *.class
@@ -14,36 +14,43 @@ __pycache__/
 node_modules/
 venv/
 .venv/
-.env
-.env.local
-.env.*
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+target/
+.gradle/
+vendor/
+composer.lock
 
 # Logs and temp files
 *.log
 *.tmp
 *.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.*
 
 # Editors
 .vscode/
 .idea/
-
-# Build directories
-dist/
-build/
-target/
-coverage/
-htmlcov/
-.mypy_cache/
-.pytest_cache/
-.gradle/
+*.swp
+*.swo
 
 # System files
 .DS_Store
 Thumbs.db
-*.swp
-*.swo
 
-# Compressed files
+# Coverage
+coverage/
+htmlcov/
+.coverage
+
+# Distribution
+dist/
+build/
 *.zip
 *.gz
 *.tar
@@ -66,9 +73,4 @@ Thumbs.db
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-
-# Coverage
-.coverage
-
-# Original rules preserved
-*.log
+```
