@@ -1,56 +1,35 @@
-```php
-# Compiled and build artifacts
-*.pyc
-*.o
-*.obj
-*.class
-*.exe
-*.dll
-*.so
-*.a
-*.out
-
-# Dependencies
-node_modules/
-venv/
-.venv/
-__pycache__/
-.mypy_cache/
-.pytest_cache/
-target/
-.gradle/
+```
+# Dependency directories
 vendor/
-composer.lock
+node_modules/
 
-# Logs and temp files
+# Build artifacts
+amd/build/
+
+# Logs
 *.log
-*.tmp
-*.swp
-*.swo
 
-# Environment
+# Environment files
 .env
 .env.local
-.env.*
+*.env.*
 
-# Editors
+# IDE files
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# System files
+# OS files
 .DS_Store
 Thumbs.db
 
-# Coverage
+# Coverage reports
 coverage/
 htmlcov/
-.coverage
+*.coverage
 
-# Distribution
-dist/
-build/
+# Compressed files
 *.zip
 *.gz
 *.tar
@@ -73,4 +52,8 @@ build/
 *.tar.bz2
 *.tar.xz
 *.tar.zst
+
+# Testing
+.phpunit.result.cache
+.phpunit.xml
 ```
