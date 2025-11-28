@@ -1,1 +1,27 @@
-Nothing to output - the added file 'gigachat_api_functions.php' is a source code file and should not be ignored.
+```
+# Dependencies
+vendor/
+# Compiled and build artifacts
+*.phar
+*.so
+*.dll
+*.exe
+*.o
+*.obj
+*.out
+build/
+dist/
+# Cache directories
+.cache/
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+# Environment
+.env
+.env.local
+.env.*
+# Editors
+.vscode/
+.idea/
+```
