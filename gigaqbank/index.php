@@ -15,35 +15,36 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Index file of the GenAI question generation plugin.
+ * Index file of the GigaChat question generation plugin.
  *
- * @package    qbank_genai
+ * @package    qbank_gigaqbank
+ * @copyright  2025 Gorbatov Sergey <s.gorbatov@tu-ugmk.com>
  * @copyright  2023 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 require('../../../config.php');
-require_once($CFG->dirroot . '/question/bank/genai/lib.php');
+require_once($CFG->dirroot . '/question/bank/gigaqbank/lib.php');
 
 $courseid = required_param('courseid', PARAM_INT);
 
-$url = new moodle_url('/question/bank/genai/index.php', ['courseid' => $courseid]);
+$url = new moodle_url('/question/bank/gigaqbank/index.php', ['courseid' => $courseid]);
 $PAGE->set_url($url);
 
 $course = get_course($courseid);
 
 require_login($course);
-core_question\local\bank\helper::require_plugin_enabled('qbank_genai');
+core_question\local\bank\helper::require_plugin_enabled('qbank_gigaqbank');
 
 $course = course_get_format($course)->get_course();
 
 $context = context_course::instance($course->id);
 $PAGE->set_context($context);
 
-require_all_capabilities(qbank_genai_required_capabilities(), $context);
+require_all_capabilities(qbank_gigaqbank_required_capabilities(), $context);
 
 $PAGE->set_pagelayout('standard');
-$PAGE->set_title(get_string('title', 'qbank_genai'));
+$PAGE->set_title(get_string('title', 'qbank_gigaqbank'));
 
 $PAGE->set_heading(format_string($course->fullname));
 
@@ -54,24 +55,24 @@ $renderer = $PAGE->get_renderer('core_question', 'bank');
 $qbankaction = new \core_question\output\qbank_action_menu($url);
 echo $renderer->render($qbankaction);
 
-echo $OUTPUT->heading(get_string('title', 'qbank_genai'));
+echo $OUTPUT->heading(get_string('title', 'qbank_gigaqbank'));
 
-// Check for OpenAI API key.
-$openaiapikey = qbank_genai_get_openai_apikey($course->id);
-if (empty($openaiapikey)) {
-    echo html_writer::tag('div', get_string('noopenaiapikey', 'qbank_genai'), ['class' => 'alert alert-warning']);
+// Check for GigaChat API key.
+$gigachatapikey = qbank_gigaqbank_get_gigachat_apikey($course->id);
+if (empty($gigachatapikey)) {
+    echo html_writer::tag('div', get_string('nogigachatapikey', 'qbank_gigaqbank'), ['class' => 'alert alert-warning']);
 }
 
 // Show ongoing generation tasks (if any).
-$existingtasks = $DB->get_records('task_adhoc', ['userid' => $USER->id, 'component' => 'qbank_genai']);
+$existingtasks = $DB->get_records('task_adhoc', ['userid' => $USER->id, 'component' => 'qbank_gigaqbank']);
 if (!empty($existingtasks)) {
     echo html_writer::start_tag('div', ['class' => 'alert alert-info']);
-    echo html_writer::tag('p', get_string('ongoingtasks', 'qbank_genai'));
+    echo html_writer::tag('p', get_string('ongoingtasks', 'qbank_gigaqbank'));
     echo html_writer::start_tag('ul');
 
     foreach ($existingtasks as $task) {
         echo html_writer::start_tag('li');
-        $resourcenames = qbank_genai_get_resource_names_string(json_decode($task->customdata)->resources);
+        $resourcenames = qbank_gigaqbank_get_resource_names_string(json_decode($task->customdata)->resources);
         echo html_writer::tag('span', format_text($resourcenames, FORMAT_PLAIN));
         echo html_writer::tag('small', userdate($task->timecreated), ['class' => 'text-muted ml-2']);
     }
@@ -82,15 +83,15 @@ if (!empty($existingtasks)) {
 }
 
 // Get course resources.
-$resources = qbank_genai_get_course_resources($course);
+$resources = qbank_gigaqbank_get_course_resources($course);
 
 if (count($resources) == 0) {
     echo html_writer::start_tag('div', ['class' => 'alert alert-warning']);
-    echo html_writer::tag('p', get_string('noresources', 'qbank_genai'));
+    echo html_writer::tag('p', get_string('noresources', 'qbank_gigaqbank'));
     echo html_writer::end_tag('div');
 } else {
-    // Form handling.
-    $mform = new \qbank_genai\form\generation_form($url, $resources);
+    // Form handling - need to create GigaQBank specific form
+    $mform = new \qbank_gigaqbank\form\generation_form($url, $resources);
 
     if ($fromform = $mform->get_data()) {
         $ids = [];
@@ -123,11 +124,11 @@ if (count($resources) == 0) {
         }
 
         // Launch generation task.
-        $task = \qbank_genai\task\generation_task::instance($selectedresources, $USER->id, $contextqbankid, $course->id);
+        $task = \qbank_gigaqbank\task\generation_task::instance($selectedresources, $USER->id, $contextqbankid, $course->id);
         \core\task\manager::queue_adhoc_task($task); // Add true to avoid duplicates.
 
         // Log generation task launched.
-        $event = \qbank_genai\event\generation_launched::create(['context' => $context, 'other' => ["ids" => $ids]]);
+        $event = \qbank_gigaqbank\event\generation_launched::create(['context' => $context, 'other' => ["ids" => $ids]]);
         $event->trigger();
 
         // Redirect to this page again (seems to interfere with mtrace in adhoc task ...).

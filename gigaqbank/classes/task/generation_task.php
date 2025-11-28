@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace qbank_genai\task;
+namespace qbank_gigaqbank\task;
 
 defined('MOODLE_INTERNAL') || die();
 
-require_once($CFG->dirroot . '/question/bank/genai/lib.php');
-require_once($CFG->dirroot . '/question/bank/genai/vendor/autoload.php');
+require_once($CFG->dirroot . '/question/bank/gigaqbank/lib.php');
+require_once($CFG->dirroot . '/gigachat_api_functions.php');
 
 /**
  * Class generation_task
  *
- * @package    qbank_genai
+ * @package    qbank_gigaqbank
+ * @copyright  2025 Gorbatov Sergey <s.gorbatov@tu-ugmk.com>
  * @copyright  2023 Christian Grévisse <christian.grevisse@uni.lu>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -58,136 +59,75 @@ class generation_task extends \core\task\adhoc_task {
     public function execute() {
         $data = $this->get_custom_data();
 
-        $openaiapikey = qbank_genai_get_openai_apikey($data->courseid);
-        if (empty($openaiapikey)) {
-            throw new \Exception('No OpenAI API key provided.');
+        $gigachatapikey = qbank_gigaqbank_get_gigachat_apikey($data->courseid);
+        if (empty($gigachatapikey)) {
+            throw new \Exception('No GigaChat API key provided.');
         }
 
-        $client = \OpenAI::client($openaiapikey);
+        // Initialize GigaChat API functions
+        $gigachat = new gigachat_api_functions();
 
-        $assistantid = qbank_genai_get_or_create_openai_assistant($data->courseid, $this->get_userid());
-
-        $category = qbank_genai_create_question_category($data->contextid, qbank_genai_get_resource_names_string($data->resources));
+        $category = qbank_gigaqbank_create_question_category($data->contextid, qbank_gigaqbank_get_resource_names_string($data->resources));
         mtrace("Category created: " . $category->name);
 
         foreach ($data->resources as $resource) {
-            $file = qbank_genai_get_fileinfo_for_resource($resource->id);
+            $file = qbank_gigaqbank_get_fileinfo_for_resource($resource->id);
 
-            mtrace("Uploading file:");
+            mtrace("Processing file:");
             mtrace($file->path);
 
-            // Upload files: Copy necessary as Moodle renames files upon upload and OpenAI requires
-            // a file extension (and symbolic link would still take original name).
-            $tempfolder = make_temp_directory('qbank_genai');
-            $copypath = $tempfolder . "/" . basename($file->path) . "." . $file->extension;
-            $file->file->copy_content_to($copypath);
-            mtrace("Temp file created:");
-            mtrace($copypath);
+            // For GigaChat, we'll use the file upload functionality if needed
+            // For now, we'll read the content directly and send it as a message
+            $filecontent = file_get_contents($file->path);
+            $filename = $file->name;
 
-            $response = $client->files()->upload([
-                'purpose' => 'assistants',
-                'file' => fopen($copypath, 'r'),
-            ]);
+            // Create a prompt to generate multiple choice questions from the file content
+            $message = "Create 10 multiple choice questions on the content of the following document: '$filename'. ";
+            $message .= "Document content: $filecontent ";
+            $message .= "Each question shall have 4 answers and only 1 correct answer. ";
+            $message .= "Questions should be in the same language as the file content. ";
+            $message .= "The output shall be in JSON format, i.e., an array of objects where each object contains the stem, ";
+            $message .= "an array for the answers and the index of the correct answer. Name the keys \"stem\", \"answers\", ";
+            $message .= "\"correctAnswerIndex\". The output shall only contain the JSON, nothing else.";
 
-            unlink($copypath);
+            try {
+                // Call GigaChat API with the message
+                $response = $gigachat->callGigaChatWithFiles($message, [], 'GigaChat-Pro');
+                
+                mtrace("GigaChat response received");
 
-            $fileid = $response->id;
+                // Process the response
+                $questiondata = json_decode(trim($response, '`json'), true);
+                
+                if (is_array($questiondata)) {
+                    $i = 0;
 
-            mtrace("File uploaded: $fileid");
+                    foreach ($questiondata as $data) {
+                        mtrace(var_export($data, true));
 
-            // Create vector store.
-            $response = $client->vectorStores()->create([
-                'name' => 'Moodle GenAI Bank Plugin Vector Store', 'file_ids' => [$fileid]]);
-            $vectorstoreid = $response->id;
+                        $question = new \stdClass();
+                        $question->stem = $data['stem'];
+                        $question->answers = [];
 
-            mtrace("Vector store created: $vectorstoreid");
+                        foreach ($data['answers'] as $answer) {
+                            $question->answers[] = (object) ["text" => $answer, "weight" => 0.0];
+                        }
 
-            // Create a Thread.
-            $response = $client->threads()->create([
-                'tool_resources' => ['file_search' => ['vector_store_ids' => [$vectorstoreid]]]]);
-            $threadid = $response->id;
+                        $question->answers[$data['correctAnswerIndex']]->weight = 1.0;
 
-            mtrace("Thread created: $threadid");
+                        $questionname = str_pad(strval(++$i), 3, "0", STR_PAD_LEFT);
 
-            // Add a Message to a Thread.
-            $message = 'Create 10 multiple choice questions on the content of the provided file. ';
-            $message .= 'Each question shall have 4 answers and only 1 correct answer. ';
-            $message .= 'Questions should be in the same language as the file content. ';
-            $message .= 'The output shall be in JSON format, i.e., an array of objects where each object contains the stem, ';
-            $message .= 'an array for the answers and the index of the correct answer. Name the keys "stem", "answers", ';
-            $message .= '"correctAnswerIndex". The output shall only contain the JSON, nothing else.';
+                        qbank_gigaqbank_create_question($questionname, $question, $category);
 
-            $response = $client->threads()->messages()->create($threadid, [
-                'role' => 'user',
-                'content' => $message,
-            ]);
-            $messageid = $response->id;
-
-            mtrace("Message created: $messageid");
-
-            // Run the Assistant.
-            $response = $client->threads()->runs()->create($threadid, ['assistant_id' => $assistantid]);
-            $runid = $response->id;
-
-            mtrace("Run created: $runid");
-
-            // Poll for status -> TODO: Streaming?
-            do {
-                sleep(1);
-                $response = $client->threads()->runs()->retrieve($threadid, $runid);
-                $status = $response->status;
-                mtrace("Status: " . $status);
-            } while ($status != 'completed' && $status != 'failed');
-
-            if ($status == 'failed') {
-                mtrace("Error during run:");
-                mtrace(var_export($response->lastError->toArray()));
-                throw new \Exception('Error during run, check task logs for further details.');
-            }
-
-            // Completed: Get the Assistant's Response.
-            mtrace("Run completed!");
-
-            // Create question bank category and questions.
-            $response = $client->threads()->messages()->list($threadid, ['limit' => 1]);
-            $value = $response->data[0]->content[0]->text->value;
-            $questiondata = json_decode(trim($value, '`json'));
-
-            mtrace(var_export($response->data));
-
-            if (is_array($questiondata)) {
-                $i = 0;
-
-                foreach ($questiondata as $data) {
-                    mtrace(var_export($data));
-
-                    $question = new \stdClass();
-                    $question->stem = $data->stem;
-                    $question->answers = [];
-
-                    foreach ($data->answers as $answer) {
-                        $question->answers[] = (object) ["text" => $answer, "weight" => 0.0];
+                        mtrace("Question created: $questionname");
                     }
-
-                    $question->answers[$data->correctAnswerIndex]->weight = 1.0;
-
-                    $questionname = str_pad(strval(++$i), 3, "0", STR_PAD_LEFT);
-
-                    qbank_genai_create_question($questionname, $question, $category);
-
-                    mtrace("Question created: $questionname");
+                } else {
+                    qbank_gigaqbank_add_description("Issue during question generation", $response, $category);
                 }
-            } else {
-                qbank_genai_add_description("Issue during question generation", $value, $category);
+            } catch (\Exception $e) {
+                mtrace("Error during GigaChat processing: " . $e->getMessage());
+                qbank_gigaqbank_add_description("Error during question generation", "Error: " . $e->getMessage(), $category);
             }
-
-            // Delete vector store.
-            $response = $client->vectorStores()->delete($vectorstoreid);
-            mtrace("Vector store deleted!");
-
-            // Delete the file.
-            $response = $client->files()->delete($fileid);
-            mtrace("File deleted!");
         }
     }
 }

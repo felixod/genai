@@ -171,18 +171,10 @@ function qbank_gigaqbank_get_or_create_gigachat_assistant(int $courseid, int $us
  * @return string ID of the created assistant.
  */
 function _qbank_gigaqbank_create_gigachat_assistant(string $apikey) {
-    // This function will be modified to work with GigaChat API
-    // For now, we'll keep the structure but this will need to be implemented with GigaChat-specific code
-    $client = GigaChat::client($apikey);
-
-    $response = $client->assistants()->create([
-        'name' => 'MCQ Generator',
-        'instructions' => 'You create multiple-choice questions about the files that you will receive.',
-        'model' => 'gigachat:latest',  // Using GigaChat model
-        'tools' => [['type' => 'file_search']],
-    ]);
-
-    return $response->id;
+    // This function is placeholder as GigaChat API doesn't have assistants concept like OpenAI
+    // For now, we'll return a static identifier since GigaChat doesn't support assistants API
+    // In a real implementation, this would interface with GigaChat's specific API structure
+    return 'gigachat-assistant-mcq-generator';
 }
 
 /**

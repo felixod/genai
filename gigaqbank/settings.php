@@ -36,12 +36,5 @@ if ($hassiteconfig) {
             get_string('gigachatapikey_help', 'qbank_gigaqbank'),
             '',
         ));
-
-        $settings->add(new admin_setting_configtext(
-            'qbank_gigaqbank/assistantid',
-            new lang_string('assistantid', 'qbank_gigaqbank'),
-            new lang_string('assistantid_help', 'qbank_gigaqbank'),
-            '',
-        ));
     }
 }
