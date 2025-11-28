@@ -17,8 +17,9 @@
 /**
  * Plugin administration pages are defined here.
  *
- * @package     qbank_genai
+ * @package     qbank_gigaqbank
  * @category    admin
+ * @copyright   2025 Gorbatov Sergey <s.gorbatov@tu-ugmk.com>
  * @copyright   2023 Christian Grévisse <christian.grevisse@uni.lu>
  * @license     https://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -26,20 +27,20 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-    $settings = new admin_settingpage('qbank_genai_settings', new lang_string('pluginname', 'qbank_genai'));
+    $settings = new admin_settingpage('qbank_gigaqbank_settings', new lang_string('pluginname', 'qbank_gigaqbank'));
 
     if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_configpasswordunmask(
-            'qbank_genai/openaiapikey',
-            get_string('openaiapikey', 'qbank_genai'),
-            get_string('openaiapikey_help', 'qbank_genai'),
+            'qbank_gigaqbank/gigachatapikey',
+            get_string('gigachatapikey', 'qbank_gigaqbank'),
+            get_string('gigachatapikey_help', 'qbank_gigaqbank'),
             '',
         ));
 
         $settings->add(new admin_setting_configtext(
-            'qbank_genai/assistantid',
-            new lang_string('assistantid', 'qbank_genai'),
-            new lang_string('assistantid_help', 'qbank_genai'),
+            'qbank_gigaqbank/assistantid',
+            new lang_string('assistantid', 'qbank_gigaqbank'),
+            new lang_string('assistantid_help', 'qbank_gigaqbank'),
             '',
         ));
     }
