@@ -1,45 +1,70 @@
 ```
-# Build artifacts
-gigachat/amd/build/
+# Dependencies
+vendor/
+composer.lock
 
-# Dependencies and virtual environments
-node_modules/
-venv/
-.venv/
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Logs and temporary files
+# Logs
 *.log
-*.tmp
-*.swp
-*.swo
 
-# Environment files
+# Environment
 .env
 .env.local
-*.env.*
+.env.*
 
-# Editor/IDE files
+# Editor/IDE
 .vscode/
 .idea/
 *.swp
 *.swo
+*.tmp
 
-# OS generated files
+# OS generated
 .DS_Store
 Thumbs.db
 
-# Coverage reports
+# PHP specific
+*.php~
+*.php.bak
+
+# Tests
+.phpunit.result.cache
 coverage/
 htmlcov/
-.coverage
+*.coverage
 
-# Distribution / packaging
-dist/
+# Build/Cache
 build/
-*.egg
-*.egg-info/
+dist/
+*.o
+*.obj
+*.out
+*.a
+*.so
+*.dll
+*.exe
+
+# Archives
+*.zip
+*.gz
+*.tar
+*.tgz
+*.bz2
+*.xz
+*.7z
+*.rar
+*.zst
+*.lz4
+*.lzh
+*.cab
+*.arj
+*.rpm
+*.deb
+*.Z
+*.lz
+*.lzo
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.tar.zst
+
 ```
