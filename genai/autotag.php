@@ -70,11 +70,11 @@ foreach ($questionlist as $questionid) {
     question_require_capability_on($questionid, 'tag');
 }
 
-// Check for OpenAI API key.
-$openaiapikey = qbank_genai_get_openai_apikey($courseid);
+// Check for GigaChat API key.
+$gigachat_token = qbank_genai_get_gigachat_token($courseid);
 
-if (empty($openaiapikey)) {
-    throw new moodle_exception('noopenaiapikey', 'qbank_genai');
+if (empty($gigachat_token)) {
+    throw new moodle_exception('nogigachat_token', 'qbank_genai');
 }
 
 $PAGE->set_pagelayout('standard');

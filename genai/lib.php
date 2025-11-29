@@ -104,24 +104,25 @@ function qbank_genai_get_fileinfo_for_resource(int $resourceid) {
 }
 
 /**
- * Retrieves the OpenAI API key, if any. It first checks the course-specific settings, then the site-wide settings.
+ * Retrieves the GigaChat token, if any. It first checks the course-specific settings, then the site-wide settings.
  *
  * @param int $courseid ID of the course.
- * @return string|null The API key or null.
+ * @return string|null The GigaChat token or null.
  */
-function qbank_genai_get_openai_apikey(int $courseid) {
+function qbank_genai_get_gigachat_token(int $courseid) {
     global $DB, $USER;
 
+    // Note: We're using the same table for GigaChat tokens since the plugin has been converted
     $coursesettings = $DB->get_record('qbank_genai_openai_settings', ["courseid" => $courseid, "userid" => $USER->id]);
 
     if ($coursesettings && !empty($coursesettings->openaiapikey)) {
-        return $coursesettings->openaiapikey;
+        return $coursesettings->openaiapikey;  // This field now stores the GigaChat token
     }
 
-    $openaiapikey = get_config('qbank_genai', 'openaiapikey');
+    $gigachat_token = get_config('qbank_genai', 'gigachat_token');
 
-    if (!empty($openaiapikey)) {
-        return $openaiapikey;
+    if (!empty($gigachat_token)) {
+        return $gigachat_token;
     }
 
     return null;

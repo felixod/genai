@@ -25,8 +25,18 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+$string['gigachat_token'] = 'GigaChat API token';
+$string['gigachat_token_help'] = 'Your GigaChat API token for authentication with SberCloud API.';
+
+$string['gigachat_model'] = 'GigaChat model';
+$string['gigachat_model_help'] = 'Select the GigaChat model to use for question generation.';
+
+$string['gigachat_timeout'] = 'GigaChat API timeout';
+$string['gigachat_timeout_help'] = 'The timeout in seconds for GigaChat API requests.';
+
+$string['nogigachat_token'] = 'You need to set a GigaChat API token.';
+
 $string['assistantid'] = 'Assistant ID';
-$string['assistantid_help'] = 'ID concerning the <a href="https://platform.openai.com/docs/assistants/overview" target="_blank">Assistants API</a> of OpenAI. This will be set by the plugin.';
 
 $string['autotag'] = 'AutoTag';
 $string['autotagintro'] = 'The following questions will be auto-tagged:';
@@ -35,20 +45,15 @@ $string['autotagsuccess'] = '{$a} questions have been tagged successfully.';
 
 $string['errormsg_noneselected'] = 'Please select at least one resource.';
 
-$string['noopenaiapikey'] = 'You need to set an OpenAI API key.';
 $string['noquestionselected'] = 'No question selected.';
 $string['noresources'] = 'There are no resources in your course.';
 
 $string['ongoingtasks'] = 'The following generation tasks are ongoing:';
 
-$string['openaiapikey'] = 'OpenAI API key';
-$string['openaiapikey_help'] = 'To be created at <a href="https://platform.openai.com/api-keys" target="_blank">https://platform.openai.com/api-keys</a>.';
-$string['openaiapisettings'] = 'OpenAI API Settings';
-
 $string['pluginname'] = 'Generative AI Question Bank';
 
 $string['privacy:metadata:qbank_genai_openai_settings'] = 'The user\'s ID';
-$string['privacy:metadata:qbank_genai_openai_settings:userid'] = 'Table that stores data related to the OpenAI API';
+$string['privacy:metadata:qbank_genai_openai_settings:userid'] = 'Table that stores data related to the GigaChat API';
 
 $string['return'] = 'Return to question bank';
 

@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * This page allows users to change settings related to the OpenAI API
+ * This page allows users to change settings related to the GigaChat API
  *
  * @package    qbank_genai
  * @copyright  2024 Christian Grévisse <christian.grevisse@uni.lu>
@@ -66,7 +66,7 @@ if ($fromform = $mform->get_data()) {
 
     // Save new settings.
     $DB->insert_record('qbank_genai_openai_settings', ["courseid" => $course->id, "userid" => $USER->id,
-        "openaiapikey" => $fromform->openaiapikey, "assistantid" => $fromform->assistantid]);
+        "openaiapikey" => $fromform->gigachat_token, "assistantid" => $fromform->assistantid]);
 
     // Redirect to this page again.
     redirect($PAGE->url);
