@@ -56,10 +56,10 @@ echo $renderer->render($qbankaction);
 
 echo $OUTPUT->heading(get_string('title', 'qbank_genai'));
 
-// Check for OpenAI API key.
-$openaiapikey = qbank_genai_get_openai_apikey($course->id);
-if (empty($openaiapikey)) {
-    echo html_writer::tag('div', get_string('noopenaiapikey', 'qbank_genai'), ['class' => 'alert alert-warning']);
+// Check for GigaChat API key.
+$gigachat_token = qbank_genai_get_gigachat_token($course->id);
+if (empty($gigachat_token)) {
+    echo html_writer::tag('div', get_string('nogigachat_token', 'qbank_genai'), ['class' => 'alert alert-warning']);
 }
 
 // Show ongoing generation tasks (if any).

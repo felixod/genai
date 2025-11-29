@@ -30,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
 $functions = [
     'qbank_genai_autotag_questions' => [
         'classname'   => 'qbank_genai\external\tag_questions',
-        'description' => 'Sends questions to OpenAI to get tags.',
+        'description' => 'Sends questions to GigaChat to get tags.',
         'type'        => 'write',
         'ajax'        => true,
         'services' => [MOODLE_OFFICIAL_MOBILE_SERVICE],

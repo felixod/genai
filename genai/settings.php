@@ -30,17 +30,30 @@ if ($hassiteconfig) {
 
     if ($ADMIN->fulltree) {
         $settings->add(new admin_setting_configpasswordunmask(
-            'qbank_genai/openaiapikey',
-            get_string('openaiapikey', 'qbank_genai'),
-            get_string('openaiapikey_help', 'qbank_genai'),
+            'qbank_genai/gigachat_token',
+            get_string('gigachat_token', 'qbank_genai'),
+            get_string('gigachat_token_help', 'qbank_genai'),
             '',
         ));
 
+        $settings->add(new admin_setting_configselect(
+            'qbank_genai/gigachat_model',
+            get_string('gigachat_model', 'qbank_genai'),
+            get_string('gigachat_model_help', 'qbank_genai'),
+            'GigaChat-Max', // Default value
+            [
+                'GigaChat' => 'GigaChat',
+                'GigaChat-Pro' => 'GigaChat-Pro',
+                'GigaChat-Max' => 'GigaChat-Max',
+            ]
+        ));
+
         $settings->add(new admin_setting_configtext(
-            'qbank_genai/assistantid',
-            new lang_string('assistantid', 'qbank_genai'),
-            new lang_string('assistantid_help', 'qbank_genai'),
-            '',
+            'qbank_genai/gigachat_timeout',
+            get_string('gigachat_timeout', 'qbank_genai'),
+            get_string('gigachat_timeout_help', 'qbank_genai'),
+            30,
+            PARAM_INT
         ));
     }
 }
