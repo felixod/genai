@@ -374,3 +374,275 @@ function qbank_genai_add_description(string $name, string $text, stdClass $categ
     // Commit the transaction.
     $transaction->allow_commit();
 }
+
+/**
+ * Generates a random UUID v4 string.
+ *
+ * @return string UUID v4.
+ */
+function qbank_genai_generate_uuid_v4() {
+    $data = random_bytes(16);
+    $data[6] = chr(ord($data[6]) & 0x0f | 0x40);
+    $data[8] = chr(ord($data[8]) & 0x3f | 0x80);
+    return sprintf('%s-%s-%s-%s-%s',
+        bin2hex(substr($data, 0, 4)),
+        bin2hex(substr($data, 4, 2)),
+        bin2hex(substr($data, 6, 2)),
+        bin2hex(substr($data, 8, 2)),
+        bin2hex(substr($data, 10, 6))
+    );
+}
+
+/**
+ * Obtains an OAuth 2.0 access token from GigaChat.
+ *
+ * @return string Valid access token.
+ * @throws moodle_exception If token retrieval fails.
+ */
+function qbank_genai_get_gigachat_access_token() {
+    global $CFG;
+    require_once($CFG->libdir . '/filelib.php');
+
+    $clientSecret = get_config('qbank_genai', 'gigachat_token');
+    if (!$clientSecret) {
+        throw new moodle_exception('gigachat_token_not_configured', 'qbank_genai');
+    }
+
+    $requestId = qbank_genai_generate_uuid_v4();
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => 'https://ngw.devices.sberbank.ru:9443/api/v2/oauth',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => 'scope=GIGACHAT_API_PERS',
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/x-www-form-urlencoded',
+            'Accept: application/json',
+            'RqUID: ' . $requestId,
+            'Authorization: Basic ' . $clientSecret,
+        ],
+        CURLOPT_SSL_VERIFYPEER => false, // Note: should be true in production
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        throw new moodle_exception('gigachat_oauth_error', 'qbank_genai', null, $httpCode);
+    }
+
+    $data = json_decode($response, true);
+    if (!isset($data['access_token'])) {
+        throw new moodle_exception('gigachat_no_access_token', 'qbank_genai');
+    }
+
+    return $data['access_token'];
+}
+
+/**
+ * Sends a question generation request to the GigaChat API.
+ *
+ * @param string $content The content for question generation.
+ * @param string $model The model to use
+ * @param array $attachments Optional file IDs to attach to the request.
+ * @return string Raw JSON response from GigaChat.
+ * @throws moodle_exception On API error.
+ */
+function qbank_genai_call_gigachat_generator(string $content, string $model = 'GigaChat-Max', array $attachments = []): string {
+    global $CFG;
+    require_once($CFG->libdir . '/filelib.php');
+
+    $accessToken = qbank_genai_get_gigachat_access_token();
+    $timeout = (int)get_config('qbank_genai', 'gigachat_timeout', 60);
+
+    $prompt = "Ты — генератор тестовых заданий. Создай 10 вопросов с множественным выбором по следующему контенту. ";
+    $prompt .= "Каждый вопрос должен иметь 4 варианта ответа и только 1 правильный ответ. ";
+    $prompt .= "Вопросы должны быть на русском языке. ";
+    $prompt .= "Вывод должен быть в формате JSON, то есть массив объектов, где каждый объект содержит стебель (stem), ";
+    $prompt .= "массив для ответов и индекс правильного ответа. Назови ключи \"stem\", \"answers\", \"correctAnswerIndex\". ";
+    $prompt .= "Вывод должен содержать только JSON, ничего больше. ";
+    $prompt .= "Контент: {$content}";
+
+    $request_body = [
+        'model' => $model,
+        'messages' => [['role' => 'user', 'content' => $prompt]],
+        'temperature' => 0.7,
+    ];
+    
+    // Add attachments if provided
+    if (!empty($attachments)) {
+        $request_body['attachments'] = $attachments;
+    }
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => 'https://gigachat.devices.sberbank.ru/api/v1/chat/completions',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'Authorization: Bearer ' . $accessToken,
+        ],
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($request_body),
+        CURLOPT_SSL_VERIFYPEER => false, // Should be true in production
+    ]);
+
+    $resp = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($code !== 200) {
+        throw new moodle_exception('gigachat_api_error', 'qbank_genai', null, $code);
+    }
+
+    $data = json_decode($resp, true);
+    if (!$data || !isset($data['choices']) || !isset($data['choices'][0]['message']['content'])) {
+        throw new moodle_exception('gigachat_invalid_response', 'qbank_genai');
+    }
+    
+    return $data['choices'][0]['message']['content'];
+}
+
+/**
+ * Sends a question generation request to the GigaChat API with file.
+ *
+ * @param string $fileid The file ID for question generation.
+ * @param string $model The model to use
+ * @return string Raw JSON response from GigaChat.
+ * @throws moodle_exception On API error.
+ */
+function qbank_genai_call_gigachat_generator_with_file(string $fileid, string $model = 'GigaChat-Max'): string {
+    global $CFG;
+    require_once($CFG->libdir . '/filelib.php');
+
+    $accessToken = qbank_genai_get_gigachat_access_token();
+    $timeout = (int)get_config('qbank_genai', 'gigachat_timeout', 60);
+
+    $prompt = "Создай 10 вопросов с множественным выбором по содержанию предоставленного файла. ";
+    $prompt .= "Каждый вопрос должен иметь 4 варианта ответа и только 1 правильный ответ. ";
+    $prompt .= "Вопросы должны быть на русском языке. ";
+    $prompt .= "Вывод должен быть в формате JSON, то есть массив объектов, где каждый объект содержит стебель (stem), ";
+    $prompt .= "массив для ответов и индекс правильного ответа. Назови ключи \"stem\", \"answers\", \"correctAnswerIndex\". ";
+    $prompt .= "Вывод должен содержать только JSON, ничего больше.";
+
+    $request_body = [
+        'model' => $model,
+        'messages' => [['role' => 'user', 'content' => $prompt]],
+        'temperature' => 0.7,
+        'attachments' => [$fileid],
+    ];
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => 'https://gigachat.devices.sberbank.ru/api/v1/chat/completions',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'Authorization: Bearer ' . $accessToken,
+        ],
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($request_body),
+        CURLOPT_SSL_VERIFYPEER => false, // Should be true in production
+    ]);
+
+    $resp = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($code !== 200) {
+        throw new moodle_exception('gigachat_api_error', 'qbank_genai', null, $code);
+    }
+
+    $data = json_decode($resp, true);
+    if (!$data || !isset($data['choices']) || !isset($data['choices'][0]['message']['content'])) {
+        throw new moodle_exception('gigachat_invalid_response', 'qbank_genai');
+    }
+    
+    return $data['choices'][0]['message']['content'];
+}
+
+/**
+ * Uploads a file to GigaChat storage.
+ *
+ * @param string $filepath Path to the file to upload
+ * @param string $filename Name of the file
+ * @param string $purpose Purpose of the file (default: "general")
+ * @return string File ID
+ * @throws moodle_exception On upload error
+ */
+function qbank_genai_upload_file_to_gigachat(string $filepath, string $filename, string $purpose = "general"): string {
+    global $CFG;
+    require_once($CFG->libdir . '/filelib.php');
+
+    $accessToken = qbank_genai_get_gigachat_access_token();
+    $timeout = (int)get_config('qbank_genai', 'gigachat_timeout', 60);
+
+    $ch = curl_init();
+    curl_setopt_array($ch, [
+        CURLOPT_URL => 'https://gigachat.devices.sberbank.ru/api/v1/files',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_TIMEOUT => $timeout,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => [
+            'file' => new CURLFile($filepath, mime_content_type($filepath), $filename),
+            'purpose' => $purpose,
+        ],
+        CURLOPT_HTTPHEADER => [
+            'Authorization: Bearer ' . $accessToken,
+        ],
+        CURLOPT_SSL_VERIFYPEER => false, // Should be true in production
+    ]);
+
+    $resp = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($code !== 200) {
+        throw new moodle_exception('gigachat_file_upload_error', 'qbank_genai', null, $code);
+    }
+
+    $data = json_decode($resp, true);
+    if (!$data || !isset($data['id'])) {
+        throw new moodle_exception('gigachat_file_upload_invalid_response', 'qbank_genai');
+    }
+
+    return $data['id'];
+}
+
+/**
+ * Parses GigaChat's JSON response into question data.
+ *
+ * @param string $raw Raw response content.
+ * @param int $retry_count Number of retries remaining (for error reporting)
+ * @return array Parsed question data
+ */
+function qbank_genai_parse_gigachat_response(string $raw, int $retry_count = 0): array {
+    $json = trim(preg_replace('/^```json\s*|\s*```$/i', '', $raw));
+    $data = json_decode($json, true);
+    
+    if (!$data) {
+        // Try to extract JSON from text if direct parsing fails
+        $pattern = '/\{(?:[^{}]|(?R))*\}/';
+        preg_match($pattern, $json, $matches);
+        if (!empty($matches)) {
+            $data = json_decode($matches[0], true);
+        }
+    }
+    
+    if ($data && isset($data[0]['stem']) && isset($data[0]['answers']) && isset($data[0]['correctAnswerIndex'])) {
+        return ['questions' => $data];
+    } else {
+        // Return error with retry information
+        return [
+            'error' => 'Failed to parse GigaChat response into expected question format',
+            'retry_needed' => $retry_count > 0
+        ];
+    }
+}
